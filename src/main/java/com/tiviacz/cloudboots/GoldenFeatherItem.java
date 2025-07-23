@@ -25,39 +25,28 @@ public class GoldenFeatherItem extends Item
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected)
-    {
-        if(entityIn instanceof ServerPlayerEntity)
-        {
-            if(((ServerPlayerEntity)entityIn).getStackInHand(Hand.MAIN_HAND).getItem() == stack.getItem())
-            {
-                if(entityIn.fallDistance >= 3.0F)
-                {
-                    ((ServerPlayerEntity)entityIn).getStackInHand(Hand.MAIN_HAND).damage(1, (ServerPlayerEntity)entityIn, e -> e.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND));
-                    entityIn.fallDistance = 0.0F;
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean isSelected) {
+        if (!(entity instanceof ServerPlayerEntity player)) return;
 
-                    if(!worldIn.isClient && worldIn instanceof ServerWorld)
-                    {
-                        ((ServerWorld)worldIn).spawnParticles(ParticleTypes.CLOUD, entityIn.lastRenderX, entityIn.lastRenderY, entityIn.lastRenderZ, 3, 0, 0, 0, (worldIn.random.nextFloat() - 0.5F));
-                    }
-                }
-            }
+        // Only act if this is the specific item *currently* being ticked
+        // (not just another feather in inventory)
+        if (!player.getInventory().contains(stack) && !stack.equals(player.getEquippedStack(EquipmentSlot.MAINHAND)) && !stack.equals(player.getEquippedStack(EquipmentSlot.OFFHAND))) {
+            return;
+        }
 
-            else if(((ServerPlayerEntity)entityIn).getStackInHand(Hand.OFF_HAND).getItem() == stack.getItem())
-            {
-                if(entityIn.fallDistance >= 3.0F)
-                {
-                    ((ServerPlayerEntity)entityIn).getStackInHand(Hand.OFF_HAND).damage(1, (ServerPlayerEntity)entityIn, e -> e.sendEquipmentBreakStatus(EquipmentSlot.OFFHAND));
-                    entityIn.fallDistance = 0.0F;
+        if (entity.fallDistance >= 3.0F) {
+            stack.damage(1, player, e -> e.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND)); // Slot info is just for animation
 
-                    if(!worldIn.isClient && worldIn instanceof ServerWorld)
-                    {
-                        ((ServerWorld)worldIn).spawnParticles(ParticleTypes.CLOUD, entityIn.lastRenderX, entityIn.lastRenderY, entityIn.lastRenderZ, 3, 0, 0, 0, (worldIn.random.nextFloat() - 0.5F));
-                    }
-                }
+            entity.fallDistance = 0.0F;
+
+            if (!world.isClient && world instanceof ServerWorld serverWorld) {
+                serverWorld.spawnParticles(ParticleTypes.CLOUD,
+                        entity.getX(), entity.getY(), entity.getZ(),
+                        3, 0, 0, 0, (world.random.nextFloat() - 0.5F));
             }
         }
     }
+
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context)
